@@ -44,13 +44,26 @@ def upload_file(
 
         raw_data = file.file.read()
 
-        encrypted_data = encrypt_file(raw_data, user.aes_key)
+        if not raw_data:
+            raise HTTPException(status_code=400, detail="Uploaded file is empty")
+
+        key = user.aes_key
+        if isinstance(key, str):
+            key = key.encode()
+
+        try:
+            encrypted_data = encrypt_file(raw_data, key)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Encryption error: {str(e)}")
 
         unique_name = f"{uuid.uuid4()}_{file.filename}"
         file_path = os.path.join(STORAGE_PATH, unique_name)
 
-        with open(file_path, "wb") as f:
-            f.write(encrypted_data)
+        try:
+            with open(file_path, "wb") as f:
+                f.write(encrypted_data)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"File write error: {str(e)}")
 
         document = Document(
             filename=file.filename,
@@ -67,8 +80,10 @@ def upload_file(
             "document_id": document.id
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
 
 # ------------------------
@@ -87,7 +102,6 @@ def share_document(
         raise HTTPException(status_code=401, detail="Invalid owner")
 
     recipient = db.query(User).filter(User.email == recipient_email).first()
-
     if not recipient:
         raise HTTPException(status_code=404, detail="Recipient not found")
 
@@ -125,13 +139,10 @@ def download_file(
         raise HTTPException(status_code=401, detail="Invalid user")
 
     document = db.query(Document).filter(Document.id == doc_id).first()
-
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    # Check owner access
     if document.owner_id != user.id:
-
         shared = db.query(DocumentShare).filter(
             DocumentShare.document_id == doc_id,
             DocumentShare.shared_with_user_id == user.id
@@ -140,16 +151,19 @@ def download_file(
         if not shared:
             raise HTTPException(status_code=403, detail="Access denied")
 
-    # Read encrypted file
+    if not os.path.exists(document.filepath):
+        raise HTTPException(status_code=404, detail="File missing on server")
+
     with open(document.filepath, "rb") as f:
         encrypted_data = f.read()
 
-    # Always decrypt using OWNER AES key
     owner = db.query(User).filter(User.id == document.owner_id).first()
 
-    decrypted_data = decrypt_file(encrypted_data, owner.aes_key)
+    try:
+        decrypted_data = decrypt_file(encrypted_data, owner.aes_key)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Decryption failed: {str(e)}")
 
-    # Create temporary decrypted file
     with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(document.filename)[1]) as temp_file:
         temp_file.write(decrypted_data)
         temp_path = temp_file.name
@@ -176,7 +190,6 @@ def sign_document(
         raise HTTPException(status_code=401, detail="Invalid user")
 
     document = db.query(Document).filter(Document.id == doc_id).first()
-
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")
 
