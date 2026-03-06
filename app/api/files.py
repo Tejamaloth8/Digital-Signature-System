@@ -33,35 +33,42 @@ def upload_file(
     user_email: str = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    try:
+        user = db.query(User).filter(User.email == user_email).first()
 
-    user = db.query(User).filter(User.email == user_email).first()
-    if not user:
-        raise HTTPException(status_code=401, detail="Invalid user")
+        if not user:
+            raise HTTPException(status_code=401, detail="Invalid user")
 
-    raw_data = file.file.read()
+        if not user.aes_key:
+            raise HTTPException(status_code=500, detail="User AES key missing")
 
-    encrypted_data = encrypt_file(raw_data, user.aes_key)
+        raw_data = file.file.read()
 
-    unique_name = f"{uuid.uuid4()}_{file.filename}"
-    file_path = os.path.join(STORAGE_PATH, unique_name)
+        encrypted_data = encrypt_file(raw_data, user.aes_key)
 
-    with open(file_path, "wb") as f:
-        f.write(encrypted_data)
+        unique_name = f"{uuid.uuid4()}_{file.filename}"
+        file_path = os.path.join(STORAGE_PATH, unique_name)
 
-    document = Document(
-        filename=file.filename,
-        filepath=file_path,
-        owner_id=user.id
-    )
+        with open(file_path, "wb") as f:
+            f.write(encrypted_data)
 
-    db.add(document)
-    db.commit()
-    db.refresh(document)
+        document = Document(
+            filename=file.filename,
+            filepath=file_path,
+            owner_id=user.id
+        )
 
-    return {
-        "message": "File uploaded successfully",
-        "document_id": document.id
-    }
+        db.add(document)
+        db.commit()
+        db.refresh(document)
+
+        return {
+            "message": "File uploaded successfully",
+            "document_id": document.id
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ------------------------
