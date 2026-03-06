@@ -7,7 +7,10 @@ from app.api.files import router as file_router
 
 app = FastAPI()
 
-# CORS
+@app.get("/")
+def root():
+    return {"message": "Digital Signature System API is running"}
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -18,9 +21,7 @@ app.add_middleware(
     allow_credentials=False
 )
 
-# 🔥 REGISTER ALL ROUTERS (THIS IS THE KEY FIX)
 app.include_router(auth_router)
 app.include_router(file_router)
 
-# 🔥 CREATE DATABASE TABLES
 Base.metadata.create_all(bind=engine)
