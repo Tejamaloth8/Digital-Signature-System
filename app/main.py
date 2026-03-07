@@ -10,22 +10,28 @@ os.makedirs("storage", exist_ok=True)
 
 app = FastAPI()
 
+# CORS configuration
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://digitalsignaturesystem.netlify.app"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 @app.get("/")
 def root():
     return {"message": "Digital Signature System API is running"}
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "https://digitalsignaturesystem.netlify.app"
-    ],
-    allow_methods=["*"],
-    allow_headers=["*"],
-    allow_credentials=False
-)
-
+# Register routers
 app.include_router(auth_router)
 app.include_router(file_router)
 
+# Create database tables
 Base.metadata.create_all(bind=engine)
