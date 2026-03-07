@@ -8,22 +8,37 @@ export const registerUser = (data) =>
   API.post("/register", data);
 
 export const loginUser = (data) =>
-  API.post("/login",data);
+  API.post("/login", data);
 
-export const uploadFile = (formData,token) =>
-  API.post("/upload",formData,{
-    headers:{
-      Authorization:`Bearer ${token}`,
-      "Content-Type":"multipart/form-data"
+export const uploadFile = (formData, token) =>
+  API.post("/upload", formData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "multipart/form-data"
     }
   });
 
-export const signDocument = (id,token) =>
-  API.post(`/sign/${id}`,{},{
-    headers:{
-      Authorization:`Bearer ${token}`
+export const signDocument = (id, token) =>
+  API.post(`/sign/${id}`, {}, {
+    headers: {
+      Authorization: `Bearer ${token}`
     }
   });
 
-export const verifyDocument = (id)=>
+export const verifyDocument = (id) =>
   API.get(`/verify/${id}`);
+
+export const shareDocument = (docId, email, token) =>
+  API.post(`/share/${docId}?recipient_email=${email}`, {}, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+
+export const downloadDocument = (docId, token) =>
+  API.get(`/download/${docId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    },
+    responseType: "blob"
+  });
