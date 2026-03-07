@@ -11,17 +11,6 @@ export default function Download({ token }) {
 
       const res = await downloadDocument(docId, token);
 
-      const contentDisposition = res.headers["content-disposition"];
-
-      let fileName = `document_${docId}`;
-
-      if(contentDisposition){
-        const match = contentDisposition.match(/filename="?(.+)"?/);
-        if(match){
-          fileName = match[1];
-        }
-      }
-
       const blob = new Blob([res.data], {
         type: res.headers["content-type"]
       });
@@ -30,6 +19,18 @@ export default function Download({ token }) {
 
       const link = document.createElement("a");
       link.href = url;
+
+      let fileName = `document_${docId}`;
+
+      const contentDisposition = res.headers["content-disposition"];
+
+      if (contentDisposition) {
+        const parts = contentDisposition.split("filename=");
+        if (parts.length > 1) {
+          fileName = parts[1].replace(/[";]/g, "").trim();
+        }
+      }
+
       link.download = fileName;
 
       document.body.appendChild(link);
