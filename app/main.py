@@ -17,6 +17,7 @@ def root():
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "http://localhost:5173",
         "https://digitalsignaturesystem.netlify.app"
     ],
     allow_methods=["*"],

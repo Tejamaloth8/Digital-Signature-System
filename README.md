@@ -43,7 +43,7 @@ Encrypted File Storage
 ## 📂 Project Structure
 
 ```
-secure-file-sharing-system
+Digital-Signature-System
 │
 ├── app
 │   ├── api
