@@ -1,6 +1,11 @@
-import { FaUpload,FaSignature,FaCheckCircle,FaShareAlt,FaDownload } from "react-icons/fa";
+import { FaUpload,FaSignature,FaCheckCircle,FaShareAlt,FaDownload,FaSignOutAlt } from "react-icons/fa";
 
 export default function Sidebar({setPage}){
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    window.location.reload();
+  };
 
   return(
 
@@ -45,6 +50,13 @@ export default function Sidebar({setPage}){
           className="hover:bg-slate-700 p-2 rounded flex gap-2"
         >
           <FaDownload/> Download
+        </button>
+
+        <button
+          onClick={logout}
+          className="hover:bg-red-700 p-2 rounded flex gap-2 mt-10"
+        >
+          <FaSignOutAlt/> Logout
         </button>
 
       </div>

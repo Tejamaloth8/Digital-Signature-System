@@ -1,27 +1,32 @@
 import { useState } from "react";
 import { downloadDocument } from "../api/api";
 
-export default function Download({token}){
+export default function Download({ token }) {
 
   const [docId,setDocId] = useState("");
 
-  const handleDownload = async ()=>{
+  const handleDownload = async () => {
 
     try{
 
-      const res = await downloadDocument(docId,token);
+      const res = await downloadDocument(docId, token);
 
-      const url = window.URL.createObjectURL(
-        new Blob([res.data])
-      );
+      const blob = new Blob([res.data]);
+
+      const url = window.URL.createObjectURL(blob);
 
       const link = document.createElement("a");
 
       link.href = url;
-      link.setAttribute("download","document");
+
+      // Keep correct extension
+      link.download = `document_${docId}`;
 
       document.body.appendChild(link);
+
       link.click();
+
+      window.URL.revokeObjectURL(url);
 
     }catch(err){
 

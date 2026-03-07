@@ -10,8 +10,9 @@ export default function App(){
 
   if(!token){
 
-    if(page === "register")
+    if(page === "register"){
       return <Register setPage={setPage}/>
+    }
 
     return <Login setToken={setToken} setPage={setPage}/>
   }
