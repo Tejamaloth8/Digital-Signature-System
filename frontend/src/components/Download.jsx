@@ -11,19 +11,28 @@ export default function Download({ token }) {
 
       const res = await downloadDocument(docId, token);
 
-      const blob = new Blob([res.data]);
+      const contentDisposition = res.headers["content-disposition"];
+
+      let fileName = `document_${docId}`;
+
+      if(contentDisposition){
+        const match = contentDisposition.match(/filename="?(.+)"?/);
+        if(match){
+          fileName = match[1];
+        }
+      }
+
+      const blob = new Blob([res.data], {
+        type: res.headers["content-type"]
+      });
 
       const url = window.URL.createObjectURL(blob);
 
       const link = document.createElement("a");
-
       link.href = url;
-
-      // Keep correct extension
-      link.download = `document_${docId}`;
+      link.download = fileName;
 
       document.body.appendChild(link);
-
       link.click();
 
       window.URL.revokeObjectURL(url);

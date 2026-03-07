@@ -169,10 +169,13 @@ def download_file(
         temp_path = temp_file.name
 
     return FileResponse(
-        path=temp_path,
-        filename=document.filename,
-        media_type="application/octet-stream"
-    )
+    path=temp_path,
+    media_type="application/octet-stream",
+    filename=document.filename,
+    headers={
+        "Content-Disposition": f'attachment; filename="{document.filename}"'
+    }
+)
 
 
 # ------------------------
