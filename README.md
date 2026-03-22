@@ -68,7 +68,7 @@ Digital-Signature-System
 Clone the repository:
 
 ```
-git clone https://github.com/Tejamaloth8/secure-file-sharing-system.git
+git clone https://github.com/Tejamaloth8/Digital-file-Signatura-system.git
 cd secure-file-sharing-system
 ```
 
